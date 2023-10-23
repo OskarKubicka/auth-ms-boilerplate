@@ -1,43 +1,38 @@
 import createPost from './post';
-import createGet from './get'
+import createGet from './get';
 import config from '../../config';
 import { logger } from '../../libs/logger';
-import { makeInputObj } from '../entities';
-import {
-  checkDir,
-  writeToFile,
-  readFromFile,
-  access,
-  readFile
-} from '../data-access';
+import { makeInputObj, makeOutputObj } from '../entities';
+import { insertDocument, findDocuments } from '../data-access';
+import { insertOneDocument } from '../../libs/mongodb';
 
+const dbConfig = config.DB_CONFIG;
+const errorMsgs = config.ERROR_MSG;
 
-const fileDirName = config.FILE_FOLDER_NAME;
-const fileDirPath = config.FILE_FOLDER_PATH;
-const filename = config.FILE_DB_NAME;
-const filePath = config.FILE_DB_PATH;
-const errorMsgs = config.ERROR_MSG.post;
+const get = ({ params }) =>
+ createGet({
+    makeInputObj,
+    findDocuments,
+    makeOutputObj,
+    logger
+  }).get({
+    params,
+    dbConfig,
+    errorMsgs
+  })
 
 const post = ({ params }) =>
   createPost({
     makeInputObj,
-    checkDir,
-    writeToFile,
-    readFromFile,
+    insertDocument,
+    findDocuments,
+    get,
     logger
   }).post({
     params,
-    filename,
-    fileDirPath,
-    fileDirName,
-    filePath,
-    errorMsgs
+    dbConfig: config.DB_CONFIG,
+    errorMsgs: errorMsgs.post
   });
-
-  const get = ({ params }) =>
-  createGet({
-    access, readFile, logger
-  }).get({params, filePath, filename})
 
 export {
   post,

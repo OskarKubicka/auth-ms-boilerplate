@@ -1,22 +1,19 @@
 export default function createPost({
-    makeInputObj,
-    checkDir,
-    readFromFile,
-    writeToFile,
-    logger,
-  }) {
-    return Object.freeze({ post });
-    
-    async function post({
-      params,
-      filename,
-      fileDirPath,
-      fileDirName,
-      filePath,
-      errorMsgs
-    }){
+  makeInputObj,
+  findDocuments,
+  insertDocument,
+  get,
+  logger,
+}) {
+  return Object.freeze({ post });
+  
+  async function post({
+    params,
+    dbConfig,
+    errorMsgs
+  }){
+    try {
       let user;
-      try {
         logger.info('[POST][USE-CASE] Inserting object process - START!');
         const userFactory = makeInputObj({ params });
   
@@ -24,23 +21,27 @@ export default function createPost({
           username: userFactory.username(),
           password: userFactory.password(),
           email: userFactory.email(),
+          role: userFactory.role(),
+          usernameHash: userFactory.usernameHash(),
+          emailHash: userFactory.emailHash(),
+          usernamePasswordHash: userFactory.usernamePasswordHash(),
           created: userFactory.created(),
           modified: userFactory.modified()
-
         }
-  
-        await checkDir({ fileDirPath, fileDirName })
-        const content = await readFromFile({ filePath, filename});
-        const duplicate = content.filter(el => el.username === user.username);
-  
-        if (duplicate.length) throw new Error(errorMsgs.EXISTING_USER);
-        content.push(user);
-        await writeToFile({ content, filePath, filename });
+        
+        // 'or' query
+        let query = { $or: [{username: user.username}, { email: user.email }] }
+        const checkDuplicate = await findDocuments({ query, dbConfig })
+        if (checkDuplicate.length) throw new Error(errorMsgs.EXISTING_USER);
+        
+        await insertDocument({ document: user, dbConfig });
         logger.info('[POST][USE-CASE] Inserting object process - DONE!');
-        return user;
-      } catch (e){
-        logger.info('[POST][USE-CASE] Inserting object process - DONE!');
-        throw e
+        
+        const inserted = get({ params: { username: user.username }});
+  
+        return inserted;
+      } catch (err) {
+        throw err.message;
       }
     }
-  }
+}

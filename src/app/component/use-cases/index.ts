@@ -2,7 +2,8 @@ import createPost from './post';
 import createGet from './get';
 import config from '../../config';
 import { logger } from '../../libs/logger';
-import { makeInputObj, makeOutputObj } from '../entities';
+import { makeInputObj } from '../entities';
+import { makeOutputObj } from '../entities';
 import { insertDocument, findDocuments } from '../data-access';
 import { insertOneDocument } from '../../libs/mongodb';
 

@@ -109,7 +109,8 @@ const post = ({ params }) =>
     makeInputObj,
     insertDocument,
     findDocuments,
-    logger
+    logger,
+    get: undefined
   })
   .post({
     params,
